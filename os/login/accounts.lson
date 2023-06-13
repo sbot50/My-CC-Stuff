@@ -41,8 +41,8 @@
         Write = true,
         Root = true,
         Accounts = {
-          Accounts = true,
           Delete = true,
+          Accounts = true,
           Create = true,
           Edit = true,
         },

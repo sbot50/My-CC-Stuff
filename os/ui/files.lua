@@ -1,5 +1,6 @@
 local w,h = term.getSize()
 local Username = nil
+local Skip = 0
 
 -- lua is dumb
 function deepcopy(orig)
@@ -246,63 +247,97 @@ local function main (username)
     db = textutils.unserialize(db);
 
     local allFiles = getFiles(table.concat(path))
-    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"])
+    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
 
     while true do
-        local eventData = {os.pullEvent("mouse_click")}
+        local eventData = {os.pullEvent()}
         local event = eventData[1]
+        local x = eventData[3]
+        local y = eventData[4]
         if event == "mouse_click" then
-            local y = eventData[4]
             if y == 2 then
-                local clickedIndex = clickedDir(path,eventData[3])
+                local clickedIndex = clickedDir(path,x)
                 if clickedIndex ~= nil then
+                    Skip = 0
                     path = table.sub(path,1,clickedIndex)
                     clearScreen(path)
                     local allFiles = getFiles(table.concat(path,"/"))
-                    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"])
+                    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
                 end
-            elseif y >= 4 then
+            elseif x == w and y == h then
                 local allFiles = getFiles(table.concat(path,"/"))
-                local file = clickedFile(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],eventData[4])
-                if file ~= nil and file.type == "Folder" then
-                    path[#path+1] = file.name
-                    clearScreen(path)
-                    local allFiles = getFiles(table.concat(path,"/"))
-                    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"])
-                elseif file ~= nil then
-                    local filePath = file.fullName
-                    if filePath:sub(1,1) == "/" then filePath = filePath:sub(2) end
-                    filePath = "./" .. filePath
-                    os.queueEvent("OSClockChange",false)
-                    if db[Username].settings.Root.Root or db[Username].settings.Root.Read then
-                        local base_fsopen = fs.open
-                        local base_isReadOnly = fs.isReadOnly
-                        local base_openTab = shell.openTab
-                        if not db[Username].settings.Root.Root and not db[Username].settings.Root.Write then
-                            function fs.open(path, mode)
-                                if path == filePath:sub(3) and mode ~= "r" and mode ~= "rb" then return nil, "Permission denied" end
-                                return base_fsopen(path, mode)
-                            end
-                            function fs.isReadOnly(path)
-                                return path == filePath:sub(3) or base_isReadOnly(path)
-                            end
-                        end
-                        if not db[Username].settings.Root.Root and not db[Username].settings.Root.Execute then
-                            function shell.openTab(string)
-                                if string == "/.temp." .. file.name then return nil end
-                                return base_openTab(string)
-                            end
-                        end
-                        shell.run("edit " .. filePath)
-                        fs.open = base_fsopen
-                        fs.isReadOnly = base_isReadOnly
-                        shell.openTab = base_openTab
-                    end
-                    os.queueEvent("OSClockChange",true)
-                    clearScreen(path)
-                    local allFiles = getFiles(table.concat(path,"/"))
-                    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"])
+                if #allFiles-Skip >= 16 then
+                    Skip = Skip + 1
+                    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
                 end
+            elseif x == w-1 and y == h and Skip > 0 then
+                Skip = Skip - 1
+                local allFiles = getFiles(table.concat(path,"/"))
+                drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
+            end
+            if eventData[2] == 1 then
+                if y >= 4 and y < h then
+                    local allFiles = getFiles(table.concat(path,"/"))
+                    local file = clickedFile(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],eventData[4],Skip)
+                    if file ~= nil and file.type == "Folder" then
+                        Skip = 0
+                        path[#path+1] = file.name
+                        clearScreen(path)
+                        local allFiles = getFiles(table.concat(path,"/"))
+                        drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
+                    elseif file ~= nil then
+                        local filePath = file.fullName
+                        if filePath:sub(1,1) == "/" then filePath = filePath:sub(2) end
+                        filePath = "./" .. filePath
+                        os.queueEvent("OSClockChange",false)
+                        os.queueEvent("MenuBar",false)
+                        if db[Username].settings.Root.Root or db[Username].settings.Root.Read then
+                            local base_fsopen = fs.open
+                            local base_isReadOnly = fs.isReadOnly
+                            local base_openTab = shell.openTab
+                            if not db[Username].settings.Root.Root and not db[Username].settings.Root.Write then
+                                function fs.open(path, mode)
+                                    if path == filePath:sub(3) and mode ~= "r" and mode ~= "rb" then return nil, "Permission denied" end
+                                    return base_fsopen(path, mode)
+                                end
+                                function fs.isReadOnly(path)
+                                    return path == filePath:sub(3) or base_isReadOnly(path)
+                                end
+                            end
+                            if not db[Username].settings.Root.Root and not db[Username].settings.Root.Execute then
+                                function shell.openTab(string)
+                                    if string == "/.temp." .. file.name then return nil end
+                                    return base_openTab(string)
+                                end
+                            end
+                            shell.run("edit " .. filePath)
+                            fs.open = base_fsopen
+                            fs.isReadOnly = base_isReadOnly
+                            shell.openTab = base_openTab
+                        end
+                        os.queueEvent("MenuBar",true)
+                        os.queueEvent("OSClockChange",true)
+                        clearScreen(path)
+                        local allFiles = getFiles(table.concat(path,"/"))
+                        drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
+                    end
+                end
+            elseif eventData[2] == 2 then
+
+            elseif eventData[2] == 3 then
+
+            end
+        elseif event == "mouse_scroll" then
+            if eventData[2] == 1 then
+                local allFiles = getFiles(table.concat(path,"/"))
+                if #allFiles-Skip >= 16 then
+                    Skip = Skip + 1
+                    drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
+                end
+            elseif eventData[2] == -1 and Skip > 0 then
+                Skip = Skip - 1
+                local allFiles = getFiles(table.concat(path,"/"))
+                drawFiles(allFiles,hiddenFiles,db[Username].settings["Show hidden files"],Skip)
             end
         end
     end

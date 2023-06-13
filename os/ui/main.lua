@@ -82,11 +82,12 @@ end
 
 -- check for click
 local function waitForClick ()
+    local enabled = true
     while true do
-        local eventData = {os.pullEvent("mouse_click")}
+        local eventData = {os.pullEvent()}
         local event = eventData[1]
         local button = nil
-        if event == "mouse_click" then
+        if event == "mouse_click" and enabled then
             for key,value in pairs(buttons) do
                 if value.x <= eventData[3] and eventData[3] <= value.x+value.w and value.y <= eventData[4] and eventData[4] <= value.y+value.h then
                     button = key
@@ -98,7 +99,7 @@ local function waitForClick ()
                 drawButtons()
                 break
             end
-        end
+        elseif event == "MenuBar" then enabled = eventData[2] end
     end
 end
 

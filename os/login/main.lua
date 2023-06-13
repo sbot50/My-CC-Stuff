@@ -194,6 +194,14 @@ while true do
                 term.setCursorPos((math.ceil(w/4)+1)+1+#username,math.ceil(h/2-1))
             end
         end
+    elseif event == "mouse_click" then
+        if eventData[4] == math.ceil(h/2-1) and eventData[3] >= (math.ceil(w/4)+1)+1 and eventData[3] <= (math.ceil(w/4)+1)+(w/2-2) then
+            field = "Name"
+            term.setCursorPos((math.ceil(w/4)+1)+1+#username,math.ceil(h/2-1))
+        elseif eventData[4] == math.ceil(h/2+1) and eventData[3] >= (math.ceil(w/4)+1)+1 and eventData[3] <= (math.ceil(w/4)+1)+(w/2-2) then
+            field = "Password"
+            term.setCursorPos((math.ceil(w/4)+1)+1+#password,math.ceil(h/2+1))
+        end
     end
 end
 return Username, Success
