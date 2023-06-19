@@ -151,7 +151,9 @@ local function depot ()
         turtle.select(i)
         if turtle.getItemDetail() and turtle.getItemDetail().name == "minecraft:oak_sapling" and saveSapling then
             saveSapling = false
-            turtle.dropDown(turtle.getItemDetail().count-10)
+            local keep = turtle.getItemDetail().count-10
+            if keep < 0 then keep = 0 end
+            turtle.dropDown(keep)
         else
             turtle.dropDown()
         end
@@ -160,6 +162,7 @@ end
 
 -- main
 local function main ()
+    refuel()
     while true do
         move()
         back()
@@ -169,3 +172,4 @@ local function main ()
 end
 
 parallel.waitForAny(main,pickup)
+
