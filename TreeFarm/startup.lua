@@ -146,10 +146,10 @@ end
 
 -- Deposit
 local function depot ()
+    local saveSapling = true
     for i = 1,16,1 do
         turtle.select(i)
-        local saveSapling = true
-        if turtle.getItemDetail() and turtle.getItemDetail().name ~= "minecraft:oak_sapling" and saveSapling then
+        if turtle.getItemDetail() and turtle.getItemDetail().name == "minecraft:oak_sapling" and saveSapling then
             saveSapling = false
             turtle.dropDown(turtle.getItemDetail().count-10)
         else
@@ -161,9 +161,9 @@ end
 -- main
 local function main ()
     while true do
-        refuel()
         move()
         back()
+        refuel()
         depot()
     end
 end
