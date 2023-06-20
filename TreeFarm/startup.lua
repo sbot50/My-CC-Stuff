@@ -100,24 +100,32 @@ end
 -- Move
 local function move ()
     turtle.turnRight()
+    if turtle.inspect() then turtle.dig() end
     turtle.forward()
     turtle.turnLeft()
+    if turtle.inspect() then turtle.dig() end
     turtle.forward()
     local turnRight = true
     for x = 1,4,1 do
         for z = 1,13,1 do
             if z%2 ~= 0 then plant() end
+            if turtle.inspect() then turtle.dig() end
             turtle.forward()
         end
         if x ~= 4 then
             if turnRight then turtle.turnRight()
             else turtle.turnLeft() end
+            if turtle.inspect() then turtle.dig() end
             turtle.forward()
+            if turtle.inspect() then turtle.dig() end
             turtle.forward()
+            if turtle.inspect() then turtle.dig() end
             turtle.forward()
+            if turtle.inspect() then turtle.dig() end
             turtle.forward()
             if turnRight then turtle.turnRight()
             else turtle.turnLeft() end
+            if turtle.inspect() then turtle.dig() end
             turtle.forward()
             turnRight = not turnRight
         end
