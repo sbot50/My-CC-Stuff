@@ -57,13 +57,10 @@ local function cutDown (right)
         local solidFront,blockFront = turtle.inspect()
         if solidFront and blockFront.name == "minecraft:oak_log" or blockFront.name == "minecraft:oak_leaves" then turtle.dig() end
         turtle.turnRight()
-        if solidDown then
-            break
-        else
-            turtle.digDown()
-            turtle.down()
-        end
+        if solidDown then turtle.digDown() end
+        turtle.down()
     end
+    if turtle.inspect() then turtle.dig() end
     turtle.forward()
     turtle.turnLeft()
     turtle.turnLeft()
@@ -136,6 +133,7 @@ end
 local function back ()
     turtle.turnRight()
     for i = 1,13,1 do
+        if turtle.inspect() then turtle.dig() end
         turtle.forward()
     end
     turtle.turnRight()
@@ -180,4 +178,3 @@ local function main ()
 end
 
 parallel.waitForAny(main,pickup)
-
